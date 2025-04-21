@@ -5,6 +5,15 @@ from PIL import Image
 def display_dashboard():
     st.title('Agent State Plots Dashboard')
 
+    # Display notes section
+    st.header('Notes')
+    st.markdown("""
+    - Broom and alligator busy box can make noise in data
+    - Farm toy has open state 
+    - Alligator busy box can be mouthed
+    - Music toy alligator can be a hitter
+    """)
+
     # Get all plot files from plots directory
     plot_files = []
     for root, dirs, files in os.walk('plots'):
