@@ -103,3 +103,45 @@ for agent_file in os.listdir('states'):
         # Save plot to agent's directory
         plt.savefig(os.path.join(agent_dir, f'{state_type}_distribution.png'))
         plt.close()
+
+        # Create plots for averaged state distributions
+        with open('states/averaged_state_distributions.pkl', 'rb') as f:
+            averaged_distributions = pickle.load(f)
+
+        # Create plots directory for averaged distributions if it doesn't exist
+        averaged_dir = os.path.join('plots', 'averaged')
+        os.makedirs(averaged_dir, exist_ok=True)
+
+        # Create a plot for each state type showing averaged distributions
+        plt.figure(figsize=(12, 6))
+        plt.title(f'Average Distribution of {state_type} state across objects')
+        plt.xlabel('Percentage of Time')
+        plt.ylabel('Objects')
+
+        y_ticks = []
+        y_pos = 0
+        
+        for obj, states in averaged_distributions.items():
+            if state_type in states:
+                y_ticks.append(obj_name_mapping[obj])
+                
+                # Get percentages for true and false states
+                true_pct = states[state_type]['true_percentage']
+                false_pct = states[state_type]['false_percentage']
+                
+                # Plot stacked bars
+                plt.barh(y_pos, false_pct, color='red', alpha=0.7)
+                plt.barh(y_pos, true_pct, left=false_pct, color='blue', alpha=0.7)
+                
+                y_pos += 1
+
+        plt.yticks(range(len(y_ticks)), y_ticks)
+        plt.grid(True, axis='y', linestyle='--', alpha=0.7)
+        plt.xlim(0, 100)  # Set x-axis limit to 100%
+
+        # Add legend
+        plt.legend(['False', 'True'])
+
+        # Save averaged plot
+        plt.savefig(os.path.join(averaged_dir, f'{state_type}_distribution.png'))
+        plt.close()

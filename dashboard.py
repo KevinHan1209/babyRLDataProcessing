@@ -25,26 +25,44 @@ def display_dashboard():
         st.error("No plot files found in plots directory")
         return
 
-    # Group plots by agent
+    # Group plots by agent and type (individual vs averaged)
     agent_plots = {}
+    averaged_plots = []
     for plot_file in plot_files:
         agent = os.path.basename(os.path.dirname(plot_file))
-        if agent not in agent_plots:
-            agent_plots[agent] = []
-        agent_plots[agent].append(plot_file)
+        if agent == 'averaged':
+            averaged_plots.append(plot_file)
+        else:
+            if agent not in agent_plots:
+                agent_plots[agent] = []
+            agent_plots[agent].append(plot_file)
 
-    # Create agent selector
-    selected_agent = st.selectbox(
-        'Select Agent',
-        options=sorted(agent_plots.keys()),
-        key='agent_selector'
-    )
+    # Create tabs for individual agents and averaged plots
+    tab1, tab2 = st.tabs(["Individual Agents", "Averaged Plots"])
 
-    # Display all plots for selected agent
-    plot_files = agent_plots[selected_agent]
-    for plot_file in plot_files:
-        img = Image.open(plot_file)
-        st.image(img, use_column_width=True, caption=os.path.basename(plot_file).replace('.png',''))
+    with tab1:
+        # Create agent selector
+        selected_agent = st.selectbox(
+            'Select Agent',
+            options=sorted(agent_plots.keys()),
+            key='agent_selector'
+        )
+
+        # Display all plots for selected agent
+        st.subheader(f'Plots for Agent {selected_agent}')
+        plot_files = agent_plots[selected_agent]
+        for plot_file in plot_files:
+            img = Image.open(plot_file)
+            st.image(img, use_column_width=True, caption=os.path.basename(plot_file).replace('.png',''))
+
+    with tab2:
+        st.subheader('Averaged State Distributions')
+        if not averaged_plots:
+            st.info("No averaged plots available yet. Run the post-processing script to generate them.")
+        else:
+            for plot_file in sorted(averaged_plots):
+                img = Image.open(plot_file)
+                st.image(img, use_column_width=True, caption=os.path.basename(plot_file).replace('.png',''))
 
 if __name__ == "__main__":
     display_dashboard()
