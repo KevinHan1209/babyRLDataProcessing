@@ -9,7 +9,7 @@ def display_dashboard():
     st.header('Notes')
     st.markdown("""
     - Broom and alligator busy box can make noise in data
-    - Farm toy has open state 
+    - Farm toy has open state but converted to popup in post processing
     - Alligator busy box can be mouthed
     - Music toy alligator can be a hitter
     """)

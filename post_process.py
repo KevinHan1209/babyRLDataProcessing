@@ -16,6 +16,11 @@ for i, session in enumerate(unique_sessions, start=1):
 for i in range(1, len(unique_sessions) + 1):
     original_obj_states = INITIAL_STATES.copy()
     post_processed_obj_states = get_state_distribution(globals()[f'agent{i}'], original_obj_states)
+    # Convert open states to popup states for farm toy
+    if 'f' in post_processed_obj_states and 'open' in post_processed_obj_states['f']:
+        open_states = post_processed_obj_states['f']['open']
+        post_processed_obj_states['f']['popup'].extend(open_states)
+        post_processed_obj_states['f'].pop('open')
     # Save post processed states to file in states folder
     with open(f'states/agent{i}_states.pkl', 'wb') as f:
         pickle.dump(post_processed_obj_states, f)

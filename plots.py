@@ -35,6 +35,10 @@ for agent_file in os.listdir('states'):
         
     agent_num = agent_file.split('_')[0]
     
+    # Skip averaged agent
+    if agent_num == 'averaged':
+        continue
+    
     # Create agent directory if it doesn't exist
     agent_dir = os.path.join('plots', agent_num)
     if not os.path.exists(agent_dir):
@@ -78,6 +82,7 @@ for agent_file in os.listdir('states'):
                 # Get state values and times
                 values = states[state_type]
                 current_state = False
+                
                 
                 # Start with False state at time 0
                 plt.hlines(y=y_pos, xmin=0, xmax=values[0][1], color='red', linewidth=2)
