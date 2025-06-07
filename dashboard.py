@@ -21,8 +21,17 @@ def display_dashboard():
             if file.endswith('.png'):
                 plot_files.append(os.path.join(root, file))
     
-    if not plot_files:
-        st.error("No plot files found in plots directory")
+    # Get plots from babyRLDataProcessing directory
+    additional_plot_files = []
+    additional_plot_dir = '/Users/kevinhan/babyRLDataProcessing/babyRLDataProcessing'
+    if os.path.exists(additional_plot_dir):
+        for root, dirs, files in os.walk(additional_plot_dir):
+            for file in files:
+                if file.endswith('.png'):
+                    additional_plot_files.append(os.path.join(root, file))
+    
+    if not plot_files and not additional_plot_files:
+        st.error("No plot files found in any directory")
         return
 
     # Group plots by agent and type (individual vs averaged)
@@ -37,8 +46,8 @@ def display_dashboard():
                 agent_plots[agent] = []
             agent_plots[agent].append(plot_file)
 
-    # Create tabs for individual agents and averaged plots
-    tab1, tab2 = st.tabs(["Individual Agents", "Averaged Plots"])
+    # Create tabs for individual agents, averaged plots, and additional plots
+    tab1, tab2, tab3 = st.tabs(["Individual Agents", "Averaged Plots", "Additional Plots"])
 
     with tab1:
         # Create agent selector
@@ -61,6 +70,15 @@ def display_dashboard():
             st.info("No averaged plots available yet. Run the post-processing script to generate them.")
         else:
             for plot_file in sorted(averaged_plots):
+                img = Image.open(plot_file)
+                st.image(img, use_column_width=True, caption=os.path.basename(plot_file).replace('.png',''))
+
+    with tab3:
+        st.subheader('Additional Plots from babyRLDataProcessing')
+        if not additional_plot_files:
+            st.info("No additional plots found in the babyRLDataProcessing directory.")
+        else:
+            for plot_file in sorted(additional_plot_files):
                 img = Image.open(plot_file)
                 st.image(img, use_column_width=True, caption=os.path.basename(plot_file).replace('.png',''))
 
