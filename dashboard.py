@@ -21,9 +21,9 @@ def display_dashboard():
             if file.endswith('.png'):
                 plot_files.append(os.path.join(root, file))
     
-    # Get plots from RND_distributions directory
+    # Get plots from RND_distributions/plots/averaged_from_csv_stacked directory
     additional_plot_files = []
-    additional_plot_dir = 'RND_distributions'
+    additional_plot_dir = 'RND_distributions/plots/averaged_from_csv_stacked'
     if os.path.exists(additional_plot_dir):
         for root, dirs, files in os.walk(additional_plot_dir):
             for file in files:
@@ -74,9 +74,9 @@ def display_dashboard():
                 st.image(img, use_column_width=True, caption=os.path.basename(plot_file).replace('.png',''))
 
     with tab3:
-        st.subheader('Additional Plots from babyRLDataProcessing')
+        st.subheader('RND Plots')
         if not additional_plot_files:
-            st.info("No additional plots found in the babyRLDataProcessing directory.")
+            st.info("No additional plots found in the RND_distributions directory.")
         else:
             for plot_file in sorted(additional_plot_files):
                 img = Image.open(plot_file)
