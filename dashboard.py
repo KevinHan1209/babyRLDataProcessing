@@ -21,9 +21,9 @@ def display_dashboard():
             if file.endswith('.png'):
                 plot_files.append(os.path.join(root, file))
     
-    # Get plots from babyRLDataProcessing directory
+    # Get plots from RND_distributions directory
     additional_plot_files = []
-    additional_plot_dir = '/Users/kevinhan/babyRLDataProcessing/babyRLDataProcessing'
+    additional_plot_dir = 'RND_distributions'
     if os.path.exists(additional_plot_dir):
         for root, dirs, files in os.walk(additional_plot_dir):
             for file in files:
