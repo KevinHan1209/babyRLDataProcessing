@@ -111,26 +111,24 @@ def calculate_csv_distributions(csv_path):
     
     return flat_dist
 
-def calculate_kl_divergence(p, q):
-    """Calculate KL divergence between two distributions"""
+def calculate_js_divergence(p, q):
+    """Calculate Jensen-Shannon divergence between two distributions"""
     # Convert to numpy arrays
     p = np.array(p)
     q = np.array(q)
-    
-    # Ensure the distributions are normalized
-    p = p / np.sum(p)
-    q = q / np.sum(q)
     
     # Add small epsilon to avoid log(0)
     epsilon = 1e-10
     p = p + epsilon
     q = q + epsilon
     
-    # Normalize again after adding epsilon
-    p = p / np.sum(p)
-    q = q / np.sum(q)
+    # Calculate the average distribution
+    m = 0.5 * (p + q)
     
-    return entropy(p, q)
+    # Calculate JS divergence
+    js_div = 0.5 * (entropy(p, m) + entropy(q, m))
+    
+    return js_div
 
 def main():
     # File paths
@@ -157,34 +155,37 @@ def main():
     common_keys = set(agent_dist.keys()) & set(csv_dist.keys())
     print("\nNumber of common keys:", len(common_keys))
     
-    # Sort keys to ensure consistent ordering
-    sorted_keys = sorted(common_keys)
+    # Calculate JS divergence for each object-state pair
+    js_divergences = {}
+    print("\nDebugging first 5 object-state pairs:")
+    for i, key in enumerate(sorted(common_keys)):
+        # Create single-element distributions for this state
+        agent_value = np.array([agent_dist[key], 100 - agent_dist[key]])
+        csv_value = np.array([csv_dist[key], 100 - csv_dist[key]])
+        
+        if i < 5:  # Only print first 5 examples
+            print(f"\nObject-state pair: {key}")
+            print(f"Agent distribution: [false: {agent_value[0]:.1f}%, true: {agent_value[1]:.1f}%]")
+            print(f"CSV distribution:   [false: {csv_value[0]:.1f}%, true: {csv_value[1]:.1f}%]")
+            print(f"Raw arrays being passed to calculate_js_divergence:")
+            print(f"agent_value = {agent_value}")
+            print(f"csv_value = {csv_value}")
+        
+        # Calculate JS divergence for this state
+        js_div = calculate_js_divergence(agent_value, csv_value)
+        js_divergences[key] = js_div
     
-    # Create aligned distributions
-    agent_values = []
-    csv_values = []
+    # Calculate average JS divergence
+    avg_js_div = np.mean(list(js_divergences.values()))
     
-    for key in sorted_keys:
-        agent_values.append(agent_dist[key])
-        csv_values.append(csv_dist[key])
+    print("\nJS divergence per object-state pair (first 15):")
+    for i, (key, js_div) in enumerate(sorted(js_divergences.items())):
+        if i < 15:
+            print(f"Key: {key}")
+            print(f"JS divergence: {js_div:.4f}")
+            print()
     
-    # Convert to numpy arrays
-    agent_values = np.array(agent_values)
-    csv_values = np.array(csv_values)
-    
-    print("\nFinal arrays:")
-    print("Agent values shape:", agent_values.shape)
-    print("CSV values shape:", csv_values.shape)
-    print("\nSample aligned entries (first 15):")
-    for i in range(min(15, len(sorted_keys))):
-        print(f"Key: {sorted_keys[i]}")
-        print(f"Agent value: {agent_values[i]}")
-        print(f"CSV value: {csv_values[i]}")
-        print()
-    
-    # Calculate KL divergence
-    kl_div = calculate_kl_divergence(agent_values, csv_values)
-    print(f"\nKL divergence between distributions: {kl_div:.4f}")
+    print(f"\nAverage JS divergence across all object-state pairs: {avg_js_div:.4f}")
 
 if __name__ == "__main__":
     main() 
