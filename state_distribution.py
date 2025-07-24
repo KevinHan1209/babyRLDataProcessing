@@ -13,14 +13,14 @@ def get_state_distribution(agent_df, original_obj_states):
     
     # common states between dataframe and RL states
     state_mapping = {
-        'noise': lambda obj, val: obj_states[obj][val].extend([[True, start_time], [False, end_time]]) if val in obj_states[obj] else print(f"KeyError: state {val} not found for object {obj}"),
-        'popup': lambda obj, val: obj_states[obj]['popup'].append([True, start_time]),
+        'noise': lambda obj, val: obj_states[obj][val].extend([[True, start_time], [False, end_time]]) if val in obj_states[obj] and obj not in ['c', 'sh', 'y'] else (print(f"Ignoring noise state for object {obj}") if obj in ['c', 'sh', 'y'] else print(f"KeyError: state {val} not found for object {obj}")),
+        'popup': lambda obj, val: obj_states[obj]['popup'].append([True, start_time]) if obj != 'g' else print(f"Ignoring popup state for gear toy (data error)"),
         'open': lambda obj, val: obj_states[obj]['open'].append([True, start_time]),
         'close': lambda obj, val: obj_states[obj]['open'].append([False, start_time]),
         'detach': lambda obj, val: obj_states[obj]['attached'].append([False, start_time]), 
         'reattach': lambda obj, val: obj_states[obj]['attached'].append([True, start_time]),
-        'mouth': lambda obj, val: obj_states[obj]['mouthed'].extend([[True, start_time], [False, end_time]]) if 'mouthed' in obj_states[obj] else print(f"KeyError: object {obj} does not have mouthed state"),
-        'hidden': lambda obj, val: obj_states[obj]['popup'].append([False, start_time]),
+        'mouth': lambda obj, val: obj_states[obj]['mouthed'].extend([[True, start_time], [False, end_time]]) if 'mouthed' in obj_states[obj] and obj != 'c' else (print(f"Ignoring mouthed state for winnie cabinet (doesn't make sense)") if obj == 'c' else print(f"KeyError: object {obj} does not have mouthed state")),
+        'hidden': lambda obj, val: obj_states[obj]['popup'].append([False, start_time]) if obj != 'g' else print(f"Ignoring hidden state for gear toy (data error)"),
     }
 
     action_mapping = {
@@ -64,16 +64,36 @@ def get_state_distribution(agent_df, original_obj_states):
                 
                 # Special handling for hit action
                 if action == 'hi':
-                    # Find the other object that was hit
-                    other_objs = [o for o in objects if o != obj]
-                    for other_obj in other_objs:
-                        obj_states[obj]['gothit'].append([True, start_time])
-                        obj_states[other_obj]['hitter'].append([True, start_time])
+                    # Object got hit
+                    obj_states[obj]['gothit'].append([True, start_time])
+                    
+                    # Check if another object was used as the hitting tool
+                    for j in range(1, 4):
+                        if j == i:  # Skip self
+                            continue
+                        other_obj = row[f'object{j}_clean_obj']
+                        if pd.isna(other_obj) or other_obj in ['dn', 'bc']:
+                            continue
+                        
+                        # Check if this object has actions indicating it was used for hitting
+                        other_dur_action = row[f'object{j}_action_state_clean_dur_action']
+                        other_point_action = row[f'object{j}_action_state_clean_point_action']
+                        
+                        # Check for brushing (broom) or shaking actions that indicate hitting
+                        if (other_dur_action == 'b' or other_point_action == 'b' or
+                            other_dur_action == 's' or other_point_action == 's'):  # s = shaking
+                            if 'hitter' in obj_states[other_obj]:
+                                obj_states[other_obj]['hitter'].append([True, start_time])
                 
                 # Special handling for brush action
                 if action == 'b':
-                    assert obj == 'b'  # brush should be the object
-                    obj_states[obj]['usebrush'].append([True, start_time])
+                    # If broom set has brush action, treat it as broom
+                    if obj == 'bs':
+                        if 'b' in obj_states:  # Check if broom exists in states
+                            obj_states['b']['usebrush'].append([True, start_time])
+                    else:
+                        assert obj == 'b'  # brush should be the object
+                        obj_states[obj]['usebrush'].append([True, start_time])
 
             # Then process dur action
             if not pd.isna(dur_action):
@@ -85,19 +105,36 @@ def get_state_distribution(agent_df, original_obj_states):
                 
                 # Special handling for hit action
                 if action == 'hi':
-                    # Find the other object that was hit
-                    other_objs = [o for o in objects if o != obj]
-                    for other_obj in other_objs:
-                        obj_states[obj]['gothit'].append([True, start_time])
-                        try:
-                            obj_states[other_obj]['hitter'].append([True, start_time])
-                        except KeyError:
-                            print(f"KeyError: 'hitter' state not found for object {other_obj}")
+                    # Object got hit
+                    obj_states[obj]['gothit'].append([True, start_time])
+                    
+                    # Check if another object was used as the hitting tool
+                    for j in range(1, 4):
+                        if j == i:  # Skip self
+                            continue
+                        other_obj = row[f'object{j}_clean_obj']
+                        if pd.isna(other_obj) or other_obj in ['dn', 'bc']:
+                            continue
+                        
+                        # Check if this object has actions indicating it was used for hitting
+                        other_dur_action = row[f'object{j}_action_state_clean_dur_action']
+                        other_point_action = row[f'object{j}_action_state_clean_point_action']
+                        
+                        # Check for brushing (broom) or shaking actions that indicate hitting
+                        if (other_dur_action == 'b' or other_point_action == 'b' or
+                            other_dur_action == 's' or other_point_action == 's'):  # s = shaking
+                            if 'hitter' in obj_states[other_obj]:
+                                obj_states[other_obj]['hitter'].append([True, start_time])
                 
                 # Special handling for brush action
                 if action == 'b':
-                    assert obj == 'b'  # brush should be the object
-                    obj_states[obj]['usebrush'].append([True, start_time])
+                    # If broom set has brush action, treat it as broom
+                    if obj == 'bs':
+                        if 'b' in obj_states:  # Check if broom exists in states
+                            obj_states['b']['usebrush'].append([True, start_time])
+                    else:
+                        assert obj == 'b'  # brush should be the object
+                        obj_states[obj]['usebrush'].append([True, start_time])
             
             # Get this object's states
             state_types = ['mouth', 'noise', 'detach', 'reattach', 'takeout', 'putin', 'popup',

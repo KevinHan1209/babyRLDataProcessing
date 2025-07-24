@@ -103,7 +103,8 @@ INITIAL_STATES = {
         'gothit': [[False, 0]],
         'contains': [[0, 0]],
         'hitter': [[False, 0]],
-        'inside': [[False, 0]]
+        'inside': [[False, 0]],
+        'mouthed': [[False, 0]]
     },  # shape sorter
     's': {
         'gothit': [[False, 0]],
