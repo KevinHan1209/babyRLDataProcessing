@@ -1,0 +1,41 @@
+MISSING STATES SUMMARY
+======================
+
+1. OBJECTS IN CSV BUT NOT IN INITIAL_STATES:
+   - ms (1 occurrence in subject 24_12)
+   - o (2 occurrences in subject 12_01)  
+   - sf (3 occurrences in subject 27_07)
+
+2. OBJECTS WITH MISSING STATES IN INITIAL_STATES:
+
+Based on the error messages when running post_process.py:
+
+a) Object 'y' (yellow donut ring):
+   - Missing: 'noise' state
+   - Error: "KeyError: state noise not found for object y"
+
+b) Object 'c' (winnie cabinet):
+   - Missing: 'mouthed' state
+   - Error: "KeyError: object c does not have mouthed state"
+   - Missing: 'noise' state
+   - Error: "KeyError: state noise not found for object c"
+
+c) Object 'sh' (shape sorter):
+   - Missing: 'noise' state
+   - Error: "KeyError: state noise not found for object sh"
+   - Missing: 'mouthed' state
+   - Error: "KeyError: object sh does not have mouthed state"
+
+d) Object 'g' (gear toy):
+   - Missing: 'popup' state
+   - Error: "KeyError: object g does not have popup state"
+
+3. STATES THAT FAILED:
+   - noise state for: y, c, sh
+   - mouthed state for: c, sh
+   - popup state for: g
+
+4. BRUSH ACTION ISSUE:
+   - Broom set ('bs') has brush action 'b' in 6 rows (all from subject 12_01)
+   - Code only expected broom ('b') to have brush action
+   - Fixed by allowing both 'b' and 'bs' to have brush actions
